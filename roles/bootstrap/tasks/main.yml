@@ -1,0 +1,70 @@
+---
+
+- name: Create temporary directory for operations
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: -flux
+  register: tempdir_1
+
+- name: Unarchive flux binary
+  ansible.builtin.unarchive:
+    src: "/tmp/flux_linux.tar.gz"
+    dest: "{{ tempdir_1.path }}"
+    remote_src: true
+    mode: "0755"
+
+####
+
+- name: Copy SSH private key
+  ansible.builtin.copy:
+    content: |
+      # SSH private key
+      {{ flux_ssh }}
+    dest: "{{ tempdir_1.path }}/ssh_key"
+    mode: "0600"
+
+- name: Create flux namespace
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ flux_namespace }}"
+    state: present
+
+- name: Clean previous runs of flux-init
+  ansible.legacy.systemd:
+    name: flux-init
+    state: stopped
+    scope: user
+  failed_when: false
+
+- name: Clean previous runs of flux-init
+  ansible.legacy.command: systemctl --user reset-failed flux-init
+  failed_when: false
+  changed_when: false
+
+- name: Bootstrap flux inside the transient flux-init service
+  ansible.legacy.command:
+    cmd: >
+      systemd-run
+        --user
+        --service-type=oneshot
+        --unit=flux-init
+        --working-directory={{ tempdir_1.path }}
+        {{ tempdir_1.path }}/flux
+          bootstrap
+          git
+          --url="{{ flux_repository }}"
+          --branch "{{ flux_branch }}"
+          --path="{{ flux_path }}"
+          --private-key-file="{{ tempdir_1.path }}/ssh_key"
+          --namespace "{{ flux_namespace }}"
+          --author-email "{{ flux_email }}"
+          --components-extra=image-reflector-controller,image-automation-controller
+          --silent
+
+###
+
+- name: Remove temporary directory for operations
+  ansible.builtin.file:
+    path: "{{ tempdir_1.path }}"
+    state: absent

@@ -1,0 +1,23 @@
+---
+
+- name: Create namespace for secret
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ age_namespace }}"
+    state: present
+
+- name: Apply secret manifest in existing namespace
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: sops-age
+        namespace: "{{ age_namespace }}"
+      type: Opaque
+      stringData:
+        age.agekey: |
+          {{ age_key }}
+    state: present
+    apply: true

@@ -1,0 +1,15 @@
+---
+
+- name: Prepare initial cluster node
+  hosts: master[0]
+  become: true
+  roles:
+    - role: ansible-pip-support
+
+- name: Bootstrap flux via initial cluster node
+  hosts: master[0]
+  roles:
+    - role: prereq
+    - role: sops_age
+    - role: download
+    - role: bootstrap

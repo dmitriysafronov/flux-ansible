@@ -1,0 +1,30 @@
+---
+
+- name: Download flux x64
+  when: ansible_facts.architecture == "x86_64"
+  ansible.builtin.get_url:
+    url: https://github.com/fluxcd/flux2/releases/download/v{{ flux_version }}/flux_{{ flux_version }}_linux_amd64.tar.gz
+    checksum: sha256:https://github.com/fluxcd/flux2/releases/download/v{{ flux_version }}/flux_{{ flux_version }}_checksums.txt
+    dest: "/tmp/flux_linux.tar.gz"
+    mode: "0644"
+
+- name: Download flux arm64
+  when:
+    - ( ansible_facts.architecture is search("arm") and
+        ansible_facts.userspace_bits == "64" ) or
+      ansible_facts.architecture is search("aarch64")
+  ansible.builtin.get_url:
+    url: https://github.com/fluxcd/flux2/releases/download/v{{ flux_version }}/flux_{{ flux_version }}_linux_arm64.tar.gz
+    checksum: sha256:https://github.com/fluxcd/flux2/releases/download/v{{ flux_version }}/flux_{{ flux_version }}_checksums.txt
+    dest: "/tmp/flux_linux.tar.gz"
+    mode: "0644"
+
+- name: Download flux armhf
+  when:
+    - ansible_facts.architecture is search("arm")
+    - ansible_facts.userspace_bits == "32"
+  ansible.builtin.get_url:
+    url: https://github.com/fluxcd/flux2/releases/download/v{{ flux_version }}/flux_{{ flux_version }}_linux_arm.tar.gz
+    checksum: sha256:https://github.com/fluxcd/flux2/releases/download/v{{ flux_version }}/flux_{{ flux_version }}_checksums.txt
+    dest: "/tmp/flux_linux.tar.gz"
+    mode: "0644"
