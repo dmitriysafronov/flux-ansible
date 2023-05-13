@@ -1,0 +1,24 @@
+---
+
+ansible_user: maintenance
+
+######################################################################
+
+flux_version: 0.41.2
+flux_namespace: flux-system
+
+flux_path: clusters/sample
+flux_repository: ssh://git@github.com/<org>/<repo>.git
+flux_branch: main
+flux_email: user@domain.tld
+
+flux_ssh: |
+  -----BEGIN OPENSSH PRIVATE KEY-----
+  ...
+  -----END OPENSSH PRIVATE KEY-----
+
+######################################################################
+
+age_namespace: "{{ flux_namespace }}"
+age_key: |
+  # created: 2022-12-28T11:47:44+04:00
