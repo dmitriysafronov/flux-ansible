@@ -13,8 +13,6 @@
     remote_src: true
     mode: "0755"
 
-####
-
 - name: Copy SSH private key
   ansible.builtin.copy:
     content: |
@@ -30,19 +28,22 @@
     name: "{{ flux_namespace }}"
     state: present
 
-- name: Clean previous runs of flux-init
+- name: Clean previous runs of flux-init 1
+  become: false
   ansible.legacy.systemd:
     name: flux-init
     state: stopped
     scope: user
   failed_when: false
 
-- name: Clean previous runs of flux-init
+- name: Clean previous runs of flux-init 2
+  become: false
   ansible.legacy.command: systemctl --user reset-failed flux-init
   failed_when: false
   changed_when: false
 
 - name: Bootstrap flux inside the transient flux-init service
+  become: false
   ansible.legacy.command:
     cmd: >
       systemd-run
@@ -61,8 +62,6 @@
           --author-email "{{ flux_email }}"
           --components-extra=image-reflector-controller,image-automation-controller
           --silent
-
-###
 
 - name: Remove temporary directory for operations
   ansible.builtin.file:
